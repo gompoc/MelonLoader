@@ -43,10 +43,6 @@ void core::initialize(HINSTANCE hinst_dll)
 	// @note: load original lib exports
 	exports::load(index, originaldll);
 
-	// @note: confirm we're loading into a unity game
-	if (!is_unity(filepath))
-		return;
-
 	if (strstr(GetCommandLineA(), "--no-mods") != nullptr)
 		return;
 
@@ -117,20 +113,6 @@ std::filesystem::path core::get_bootstrap_path(const std::filesystem::path& base
 	LocalFree(argv);
 
 	return returnval;
-}
-
-bool core::is_unity(const std::filesystem::path& exe_filepath)
-{
-	const auto filename = exe_filepath.filename().stem().wstring();
-	const auto datapath = exe_filepath.parent_path() / (filename + L"_Data");
-
-	if (!exists(datapath))
-		return false;
-
-	if (exists(datapath / L"globalgamemanagers") || exists(datapath / L"data.unity3d") || exists(datapath / L"mainData"))
-		return true;
-
-	return false;
 }
 
 void core::error(const std::string& reason, const bool should_kill)

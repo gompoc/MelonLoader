@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using MelonLoader.InternalUtils;
 using MelonLoader.MonoInternals;
+using bHapticsLib;
 #pragma warning disable IDE0051 // Prevent the IDE from complaining about private unreferenced methods
 
 namespace MelonLoader
@@ -16,7 +17,6 @@ namespace MelonLoader
             Fixes.UnhandledException.Install(curDomain);
             Fixes.ServerCertificateValidation.Install();
 
-            MelonLaunchOptions.Load();
             MelonUtils.Setup(curDomain);
             Assertions.LemonAssertMapping.Setup();
 
@@ -32,11 +32,13 @@ namespace MelonLoader
             PatchShield.Install();
 
             MelonPreferences.Load();
-            bHaptics.Load();
 
             MelonCompatibilityLayer.LoadModules();
 
+            bHapticsManager.Connect(BuildInfo.Name, UnityInformationHandler.GameName);
+
             MelonHandler.LoadMelonsFromDirectory<MelonPlugin>(MelonHandler.PluginsDirectory);
+            MelonEvents.MelonHarmonyEarlyInit.Invoke();
             MelonEvents.OnPreInitialization.Invoke();
 
             return 0;
@@ -53,8 +55,6 @@ namespace MelonLoader
 
         private static int Start()
         {
-            bHaptics.Start();
-
             MelonEvents.OnPreModsLoaded.Invoke();
             MelonHandler.LoadMelonsFromDirectory<MelonMod>(MelonHandler.ModsDirectory);
 
@@ -65,6 +65,7 @@ namespace MelonLoader
             AddUnityDebugLog();
             RegisterTypeInIl2Cpp.SetReady();
 
+            MelonEvents.MelonHarmonyInit.Invoke();
             MelonEvents.OnApplicationStart.Invoke();
 
             return 0;
@@ -75,7 +76,7 @@ namespace MelonLoader
             MelonPreferences.Save();
 
             HarmonyInstance.UnpatchSelf();
-            bHaptics.Quit();
+            bHapticsManager.Disconnect();
 
             MelonLogger.Flush();
 

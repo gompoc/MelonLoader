@@ -40,29 +40,25 @@ namespace MelonLoader
             if (!Directory.Exists(UserLibsDirectory))
                 Directory.CreateDirectory(UserLibsDirectory);
 
+            MelonLoaderDirectory = Path.GetDirectoryName(typeof(MelonUtils).Assembly.Location);
+
+            MelonLaunchOptions.Load();
+            MelonHandler.Setup();
             UnityInformationHandler.Setup();
 
             CurrentGameAttribute = new MelonGameAttribute(UnityInformationHandler.GameDeveloper, UnityInformationHandler.GameName);
-
-            IsDemeo = (UnityInformationHandler.GameDeveloper.Equals("Resolution Games") && (UnityInformationHandler.GameName.StartsWith("115913 Demeo") || UnityInformationHandler.GameName.StartsWith("Demeo") || UnityInformationHandler.GameName.StartsWith("Demeo PC Edition")));
-            IsMuseDash = (UnityInformationHandler.GameDeveloper.Equals("PeroPeroGames") && UnityInformationHandler.GameName.Equals("Muse Dash"));
-            IsBONEWORKS = (UnityInformationHandler.GameDeveloper.Equals("Stress Level Zero") && UnityInformationHandler.GameName.Equals("BONEWORKS"));
-
             CurrentPlatform = IsGame32Bit() ? MelonPlatformAttribute.CompatiblePlatforms.WINDOWS_X86 : MelonPlatformAttribute.CompatiblePlatforms.WINDOWS_X64; // Temporarily
-
             CurrentDomain = IsGameIl2Cpp() ? MelonPlatformDomainAttribute.CompatibleDomains.IL2CPP : MelonPlatformDomainAttribute.CompatibleDomains.MONO;
         }
 
         public static string BaseDirectory { get; private set; }
         public static string GameDirectory { get; private set; }
+        public static string MelonLoaderDirectory { get; private set; }
         public static string UserDataDirectory { get; private set; }
         public static string UserLibsDirectory { get; private set; }
         public static MelonPlatformAttribute.CompatiblePlatforms CurrentPlatform { get; private set; }
         public static MelonPlatformDomainAttribute.CompatibleDomains CurrentDomain { get; private set; }
         public static MelonGameAttribute CurrentGameAttribute { get; private set; }
-        public static bool IsBONEWORKS { get; private set; }
-        public static bool IsDemeo { get; private set; }
-        public static bool IsMuseDash { get; private set; }
         public static T Clamp<T>(T value, T min, T max) where T : IComparable<T> { if (value.CompareTo(min) < 0) return min; if (value.CompareTo(max) > 0) return max; return value; }
         public static string HashCode { get; private set; }
 
@@ -372,22 +368,13 @@ namespace MelonLoader
         public static IntPtr GetNativeLibraryExport(this IntPtr ptr, string name)
             => NativeLibrary.GetExport(ptr, name);
 
-        public static ClassDatabasePackage LoadIncludedClassPackage(this AssetsManager assetsManager)
+        public static ClassPackageFile LoadIncludedClassPackage(this AssetsManager assetsManager)
         {
-            ClassDatabasePackage classPackage = null;
+            ClassPackageFile classPackage = null;
             using (MemoryStream mstream = new(Properties.Resources.classdata))
                 classPackage = assetsManager.LoadClassPackage(mstream);
             return classPackage;
         }
-
-        public static ClassDatabasePackage LoadIncludedLargeClassPackage(this AssetsManager assetsManager)
-        {
-            ClassDatabasePackage classPackage = null;
-            using (MemoryStream mstream = new(Properties.Resources.classdata_large))
-                classPackage = assetsManager.LoadClassPackage(mstream);
-            return classPackage;
-        }
-
 
         [Obsolete("MelonLoader.MelonUtils.GetUnityVersion() is obsolete. Please use MelonLoader.InternalUtils.UnityInformationHandler.EngineVersion instead.")]
         public static string GetUnityVersion() => UnityInformationHandler.EngineVersion.ToStringWithoutType();

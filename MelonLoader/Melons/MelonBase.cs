@@ -1,7 +1,9 @@
 ﻿using MelonLoader.InternalUtils;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 #pragma warning disable 0618
@@ -27,7 +29,7 @@ namespace MelonLoader
         /// </summary>
         public static readonly MelonEvent<MelonBase> OnMelonInitializing = new();
 
-        public static List<MelonBase> RegisteredMelons => _registeredMelons.AsReadOnly().ToList();
+        public static ReadOnlyCollection<MelonBase> RegisteredMelons => _registeredMelons.AsReadOnly();
         internal static List<MelonBase> _registeredMelons = new();
 
         /// <summary>
@@ -37,7 +39,7 @@ namespace MelonLoader
         {
             var melon = new T
             {
-                Info = new MelonInfoAttribute(name, author, version, null, typeof(T)),
+                Info = new MelonInfoAttribute(typeof(T), name, version, author),
                 MelonAssembly = MelonAssembly.LoadMelonAssembly(null, typeof(T).Assembly),
                 Priority = priority,
                 ConsoleColor = color ?? MelonLogger.DefaultMelonColor,
@@ -54,18 +56,19 @@ namespace MelonLoader
         /// <summary>
         /// Registers a List of Melons in the right order.
         /// </summary>
-        public static void RegisterSorted<T>(IList<T> melons) where T : MelonBase
+        public static void RegisterSorted<T>(IEnumerable<T> melons) where T : MelonBase
         {
             if (melons == null)
                 return;
 
-            SortMelons(ref melons);
+            var collection = melons.ToList();
+            SortMelons(ref collection);
 
             foreach (var m in melons)
                 m.Register();
         }
 
-        private static void SortMelons<T>(ref IList<T> melons) where T : MelonBase
+        private static void SortMelons<T>(ref List<T> melons) where T : MelonBase
         {
             DependencyGraph<T>.TopologicalSort(melons);
             melons = melons.OrderBy(x => x.Priority).ToList();
@@ -238,20 +241,22 @@ namespace MelonLoader
 
         /// <summary>
         /// Runs when the Melon is registered. Executed before the Melon's info is printed to the console. This callback should only be used a constructor for the Melon.
-        /// <para>Please note that this callback may run before the Support Module is loaded and before the Engine is fully initialized.
-        /// <br>As a result, using unhollowed assemblies and creating/getting UnityEngine Objects may not be possible and you would have to override <see cref="OnLoaderInitialized"/> instead.</br></para>
         /// </summary>
-        public virtual void OnInitializeMelon() { }
+        /// <remarks>
+        /// Please note that this callback may run before the Support Module is loaded.
+        /// <br>As a result, using unhollowed assemblies may not be possible yet and you would have to override <see cref="OnInitializeMelon"/> instead.</br>
+        /// </remarks>
+        public virtual void OnEarlyInitializeMelon() { }
 
         /// <summary>
         /// Runs after the Melon has registered. This callback waits until MelonLoader has fully initialized (<see cref="MelonEvents.OnApplicationStart"/>).
         /// </summary>
-        public virtual void OnLoaderInitialized() { }
+        public virtual void OnInitializeMelon() { }
 
         /// <summary>
-        /// Runs after <see cref="OnLoaderInitialized"/>. This callback waits until Unity has invoked the first 'Start' messages (<see cref="MelonEvents.OnApplicationLateStart"/>).
+        /// Runs after <see cref="OnInitializeMelon"/>. This callback waits until Unity has invoked the first 'Start' messages (<see cref="MelonEvents.OnApplicationLateStart"/>).
         /// </summary>
-        public virtual void OnLoaderLateInitialized() { }
+        public virtual void OnLateInitializeMelon() { }
 
         /// <summary>
         /// Runs when the Melon is unregistered. Also runs before the Application is closed (<see cref="MelonEvents.OnApplicationDefiniteQuit"/>).
@@ -302,7 +307,7 @@ namespace MelonLoader
             if (incompatibilities == null || incompatibilities.Length == 0)
                 return;
 
-            MelonLogger.Msg(ConsoleColor.Red, "------------------------------");
+            MelonLogger.WriteLine(ConsoleColor.Red);
             MelonLogger.Msg(ConsoleColor.DarkRed, $"'{melon.Info.Name} v{melon.Info.Version}' is incompatible:");
             if (incompatibilities.Contains(Incompatibility.Game))
             {
@@ -348,7 +353,7 @@ namespace MelonLoader
                 MelonLogger.Msg($"    - {melon.SupportedMLBuild.HashCode}");
             }
 
-            MelonLogger.Msg(ConsoleColor.Red, "------------------------------");
+            MelonLogger.WriteLine(ConsoleColor.Red);
             MelonLogger.WriteSpacer();
         }
 
@@ -375,17 +380,15 @@ namespace MelonLoader
 
             OnMelonInitializing.Invoke(this);
 
-            if (LoggerInstance == null)
-                LoggerInstance = new MelonLogger.Instance(string.IsNullOrEmpty(ID) ? Info.Name : $"{ID}:{Info.Name}", ConsoleColor);
-            if (HarmonyInstance == null)
-                HarmonyInstance = new HarmonyLib.Harmony($"{Assembly.FullName}:{Info.Name}");
+            LoggerInstance ??= new MelonLogger.Instance(string.IsNullOrEmpty(ID) ? Info.Name : $"{ID}:{Info.Name}", ConsoleColor);
+            HarmonyInstance ??= new HarmonyLib.Harmony($"{Assembly.FullName}:{Info.Name}");
 
             Registered = true; // this has to be true before the melon can subscribe to any events
             RegisterCallbacks();
 
             try
             {
-                OnInitializeMelon();
+                OnEarlyInitializeMelon();
             }
             catch (Exception ex)
             {
@@ -411,9 +414,9 @@ namespace MelonLoader
                 MelonEvents.OnApplicationStart.Subscribe(LoaderInitialized, Priority, true);
 
             if (MelonEvents.OnApplicationLateStart.Disposed)
-                OnLoaderLateInitialized();
+                OnLateInitializeMelon();
             else
-                MelonEvents.OnApplicationLateStart.Subscribe(OnLoaderLateInitialized, Priority, true);
+                MelonEvents.OnApplicationLateStart.Subscribe(OnLateInitializeMelon, Priority, true);
 
             return true;
         }
@@ -426,10 +429,9 @@ namespace MelonLoader
 
         private void LoaderInitialized()
         {
-            HarmonyInit();
             try
             {
-                OnLoaderInitialized();
+                OnInitializeMelon();
             }
             catch (Exception ex)
             {
@@ -437,14 +439,14 @@ namespace MelonLoader
             }
         }
 
-        protected internal virtual bool RegisterInternal()
+        protected private virtual bool RegisterInternal()
         {
             return true;
         }
 
-        protected internal virtual void UnregisterInternal() { }
+        protected private virtual void UnregisterInternal() { }
 
-        protected internal virtual void RegisterCallbacks()
+        protected private virtual void RegisterCallbacks()
         {
             MelonEvents.OnApplicationQuit.Subscribe(OnApplicationQuit, Priority);
             MelonEvents.OnUpdate.Subscribe(OnUpdate, Priority);
@@ -520,21 +522,17 @@ namespace MelonLoader
 
         private void PrintLoadInfo()
         {
-            MelonLogger.Msg(ConsoleColor.DarkGreen, "------------------------------");
-
-            MelonLogger.Msg(ConsoleColor.DarkGray, MelonTypeName + " initialized:");
+            MelonLogger.WriteLine(ConsoleColor.DarkGreen);
+            
             MelonLogger.Internal_PrintModName(ConsoleColor, AuthorConsoleColor, Info.Name, Info.Author, Info.Version, ID);
+            MelonLogger.Msg(ConsoleColor.DarkGray, $"Assembly: {Path.GetFileName(MelonAssembly.Location)}");
 
-            if (!string.IsNullOrEmpty(Hash))
-                MelonLogger.Msg($"SHA256 Hash: {Hash}");
-
-            MelonLogger.Msg(ConsoleColor.DarkGreen, "------------------------------");
-            MelonLogger.WriteSpacer();
+            MelonLogger.WriteLine(ConsoleColor.DarkGreen);
         }
 
         private void PrintUnloadInfo(string reason)
         {
-            MelonLogger.Msg(ConsoleColor.DarkRed, "------------------------------");
+            MelonLogger.WriteLine(ConsoleColor.DarkRed);
 
             MelonLogger.Msg(ConsoleColor.DarkGray, MelonTypeName + " deinitialized:");
             MelonLogger.Internal_PrintModName(ConsoleColor, AuthorConsoleColor, Info.Name, Info.Author, Info.Version, ID);
@@ -545,8 +543,7 @@ namespace MelonLoader
                 MelonLogger.Msg($"Reason: '{reason}'");
             }
 
-            MelonLogger.Msg(ConsoleColor.DarkRed, "------------------------------");
-            MelonLogger.WriteSpacer();
+            MelonLogger.WriteLine(ConsoleColor.DarkRed);
         }
 
         public static void ExecuteAll(LemonAction<MelonBase> func, bool unregisterOnFail = false, string unregistrationReason = null)
@@ -580,16 +577,40 @@ namespace MelonLoader
                     m.Unregister(unregistrationReason);
             }
         }
+
+        public static void SendMessageAll(string name, params object[] arguments)
+        {
+            LemonEnumerator<MelonBase> enumerator = new(_registeredMelons.ToArray());
+            while (enumerator.MoveNext())
+            {
+                var melon = enumerator.Current;
+                if (!melon.Registered)
+                    continue;
+
+                try { melon.SendMessage(name, arguments); }
+                catch (Exception ex) { melon.LoggerInstance.Error(ex.ToString()); }
+            }
+        }
+
+        public object SendMessage(string name, params object[] arguments)
+        {
+            var msg = Info.SystemType.GetMethod(name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+
+            if (msg == null)
+                return null;
+
+            return msg.Invoke(msg.IsStatic ? null : this, arguments);
+        }
         #endregion
 
         #region Obsolete Members
 
         private Harmony.HarmonyInstance _OldHarmonyInstance;
 
-        [Obsolete("Please use either the OnLoaderLateInitialized callback, or the 'MelonEvents::OnApplicationLateStart' event instead.")]
+        [Obsolete("Please use either the OnLateInitializeMelon callback, or the 'MelonEvents::OnApplicationLateStart' event instead.")]
         public virtual void OnApplicationLateStart() { }
 
-        [Obsolete("For mods, use OnLoaderInitialized or OnLoaderLateInitialized instead. For plugins, use OnPreModsLoaded instead.")]
+        [Obsolete("For mods, use OnInitializeMelon instead. For plugins, use OnPreModsLoaded instead.")]
         public virtual void OnApplicationStart() { }
 
         [Obsolete("Please use OnPreferencesSaved instead.")]
@@ -597,11 +618,11 @@ namespace MelonLoader
 
         [Obsolete("Please use HarmonyInstance instead.")]
 #pragma warning disable IDE1006 // Naming Styles
-        public Harmony.HarmonyInstance harmonyInstance { get { if (_OldHarmonyInstance == null) _OldHarmonyInstance = new Harmony.HarmonyInstance(HarmonyInstance.Id); return _OldHarmonyInstance; } }
+        public Harmony.HarmonyInstance harmonyInstance { get { _OldHarmonyInstance ??= new Harmony.HarmonyInstance(HarmonyInstance.Id); return _OldHarmonyInstance; } }
 #pragma warning restore IDE1006 // Naming Styles
 
         [Obsolete("Please use HarmonyInstance instead.")]
-        public Harmony.HarmonyInstance Harmony { get { if (_OldHarmonyInstance == null) _OldHarmonyInstance = new Harmony.HarmonyInstance(HarmonyInstance.Id); return _OldHarmonyInstance; } }
+        public Harmony.HarmonyInstance Harmony { get { _OldHarmonyInstance ??= new Harmony.HarmonyInstance(HarmonyInstance.Id); return _OldHarmonyInstance; } }
 
         [Obsolete("Please use MelonAssembly.Assembly instead.")]
         public Assembly Assembly => MelonAssembly.Assembly;

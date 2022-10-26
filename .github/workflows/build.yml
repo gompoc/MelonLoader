@@ -1,11 +1,6 @@
 name: Build MelonLoader
 
-on:
-  push:
-    branches: [ master, alpha-development, v0.6.0-rewrite ]
-  pull_request:
-    branches: [ master, alpha-development, v0.6.0-rewrite ]
-  workflow_dispatch:
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build_core_debug:
@@ -123,9 +118,6 @@ jobs:
           mkdir Output\Debug\x64\MelonLoader\Dependencies\MonoBleedingEdge.x64\
           xcopy BaseLibs\MonoBleedingEdge.x64 Output\Debug\x64\MelonLoader\Dependencies\MonoBleedingEdge.x64\ /E /H /Y
           echo.
-          echo Copying bHaptics DLL...
-          copy BaseLibs\bHaptics.x64.dll Output\Debug\x64\MelonLoader\Dependencies\
-          echo.
           echo Copying documentation files...
           copy NOTICE.txt Output\Debug\x64
           mkdir Output\Debug\x64\MelonLoader\Documentation
@@ -168,9 +160,6 @@ jobs:
           echo Copying Mono x86...
           mkdir Output\Debug\x86\MelonLoader\Dependencies\MonoBleedingEdge.x86\
           xcopy BaseLibs\MonoBleedingEdge.x86 Output\Debug\x86\MelonLoader\Dependencies\MonoBleedingEdge.x86\ /E /H /Y
-          echo.
-          echo Copying bHaptics DLL...
-          copy BaseLibs\bHaptics.x86.dll Output\Debug\x86\MelonLoader\Dependencies\
           echo.
           echo Copying documentation files...
           copy NOTICE.txt Output\Debug\x86
@@ -215,9 +204,6 @@ jobs:
           mkdir Output\Release\x64\MelonLoader\Dependencies\MonoBleedingEdge.x64\
           xcopy BaseLibs\MonoBleedingEdge.x64 Output\Release\x64\MelonLoader\Dependencies\MonoBleedingEdge.x64\ /E /H /Y
           echo.
-          echo Copying bHaptics DLL...
-          copy BaseLibs\bHaptics.x64.dll Output\Release\x64\MelonLoader\Dependencies\
-          echo.
           echo Copying documentation files...
           copy NOTICE.txt Output\Release\x64
           mkdir Output\Release\x64\MelonLoader\Documentation
@@ -261,9 +247,6 @@ jobs:
           mkdir Output\Release\x86\MelonLoader\Dependencies\MonoBleedingEdge.x86\
           xcopy BaseLibs\MonoBleedingEdge.x86 Output\Release\x86\MelonLoader\Dependencies\MonoBleedingEdge.x86\ /E /H /Y
           echo.
-          echo Copying bHaptics DLL...
-          copy BaseLibs\bHaptics.x86.dll Output\Release\x86\MelonLoader\Dependencies\
-          echo.
           echo Copying documentation files...
           copy NOTICE.txt Output\Release\x86
           mkdir Output\Release\x86\MelonLoader\Documentation
@@ -280,7 +263,7 @@ jobs:
     runs-on: windows-latest
     needs: [finalize_x86_debug_zip, finalize_x64_debug_zip, finalize_x86_release_zip, finalize_x64_release_zip]
     steps:
-      - uses: GeekyEggo/delete-artifact@v1.0.0
+      - uses: GeekyEggo/delete-artifact@v2.0.0
         with:
           name: |
             MLCoreDebug

@@ -1,6 +1,7 @@
 | Versions: |
 | - |
-| [v0.x.x](#v0xx) |
+| [v0.5.7](#v057) |
+| [v0.5.5](#v055) |
 | [v0.5.4](#v054) |
 | [v0.5.3](#v053) | 
 | [v0.5.2](#v052) |
@@ -30,27 +31,68 @@
 
 ---
 
-### v0.x.x:
+### v0.5.7:
+
+1. Fixed the MelonEvent registration sorting.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+2. Inverted the MelonEvent priority sorting system to match the MelonPriorityAttribute.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+3. Updated Start Screen Signatures.     (Credits to [Slaynash](https://github.com/Slaynash) :3)
+4. Fixed Start Screen Issues with UnityInternals.runtime_class_init.
+5. Updated Class Data TPK.     (Credits to [ds5678](https://github.com/ds5678) :D)
+6. Updated [Cpp2IL](https://github.com/SamboyCoding/Cpp2IL) to v2022.1.0-pre-release.8.
+7. Added Launch Option Logging.
+8. Added new MelonInfo constructors and SemanticVersion variable.
+9. Setup Compatibility Layer for BONEWORKS and BONELAB.
+10. Made Game Specific Compatibility Layers load agnostically.
+11. Fixed race condition issue with multiple concurrent scene loads.
+12. Removed BONEWORKS_OnLoadingScreen MelonMod override and MelonEvent.
+13. Added Auto-Resolver for OnLoadingScreen MelonMod methods.
+14. Rewrote ServerCertificateValidation Fix to use Reflection.
+15. Separated Melon Harmony Initialization from OnApplicationStart events.
+16. Fixed issue with MelonInfo Semver Constructors being inaccessable.
+17. Added LemonTuple Constructors.
+
+---
+
+### v0.5.5:
 
 1. Rewrote Proxy.   (Credits to [autumncpp](https://github.com/autumncpp) :D)
-2. Updated [AssetsTools.NET](https://github.com/nesrak1/AssetsTools.NET) to v2.0.12.
+2. Updated [AssetsTools.NET](https://github.com/nesrak1/AssetsTools.NET) to v3.0.0-preview1.
 3. Updated [AssetRipper.VersionUtilities](https://github.com/AssetRipper/VersionUtilities) to v1.2.1.
 4. Removed Game Blacklist.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-5. Updated [HarmonyX](https://github.com/BepInEx/HarmonyX) to v2.10.0.
-6. Rewritten the Melons loader.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-7. Added MelonEvents.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-8. Added MelonModules.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-9. Gave all MelonModules their own logger instances.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-10. Added MelonAssemblies.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-11. Fixed MelonLoader's deinitialization time.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-12. Implemented warning for Melons which don't use a semver-style version.    (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
-13. Fixed Crash Issue with Demeo Compatibility Layer.
-14. Fixed Issue with VR Mode on Demeo.
-15. Fixed Issues with Demeo CL not refreshing Melon Listings.
-16. Fixed MME Issue with MelonBase.
-17. Updated [Cpp2IL](https://github.com/SamboyCoding/Cpp2IL) to v2022.1.0-pre-release.6.
-18. Backported StackFrame::GetMethod Fix.     (Credits to [Samboy](https://github.com/SamboyCoding) :3)
-19. Added a singleton class for Melons (Melon<T>)    (Credits to [SlidyDev](https://github.com/SlidyDev) :])
+5. Rewritten the Melons loader.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+6. Added MelonEvents.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+7. Added MelonModules.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+8. Gave all MelonModules their own logger instances.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+9. Added MelonAssemblies.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+10. Fixed MelonLoader's deinitialization time.   (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+11. Implemented warning for Melons which don't use a semver-style version.    (Credits to [SlidyDev](https://github.com/SlidyDev) :D)
+12. Fixed Crash Issue with Demeo Compatibility Layer.
+13. Fixed Issue with VR Mode on Demeo.
+14. Fixed Issues with Demeo CL not refreshing Melon Listings.
+15. Fixed MME Issue with MelonBase.
+16. Updated [Cpp2IL](https://github.com/SamboyCoding/Cpp2IL) to v2022.1.0-pre-release.7.
+17. Backported StackFrame::GetMethod Fix.     (Credits to [Samboy](https://github.com/SamboyCoding) :3)
+18. Added a singleton class for Melons (Melon<T>)     (Credits to [SlidyDev](https://github.com/SlidyDev) :])
+19. Fixed Issue with Unity Game Check in Proxy.
+20. Removed ``--melonloader.agfvunity`` Launch Option.
+21. Added ``--melonloader.unityversion`` Launch Option.
+22. Added Backup Unity Version Parsing Method.
+23. Fixed Issue with Reading Launch Options.
+24. Temporarily disabled mono_debug_init Call for Mono Games to fix Crash Issue.
+25. Removed Useless DLL Name Parse.
+26. Downgraded HarmonyX and MonoMod.RuntimeDetour to fix NRE issue with MonoMod's ReflectionHelper.
+27. Added a simpler unsub method for melon events.     (Credits to [Samboy](https://github.com/SamboyCoding) :3)
+28. Replaced Assembly Generator User-Agent with Build Version.
+29. Cleaned the melon info log format.     (Credits to [SlidyDev](https://github.com/SlidyDev) :])
+30. Implemented Fallback Unity Version Parsing.     (Credits to [Samboy](https://github.com/SamboyCoding) and [ds5678](https://github.com/ds5678) :D)
+31. Swapped out the official bHaptics library with the open-source bHapticsLib.
+32. Fixed MRE Issue with MelonLoader.Core referencing the Obsolete bHaptics class.
+33. Fixed Regex Compatibility Issue with Older Runtimes.
+34. Added additional null checking for Start Screen's GfxDevice.
+35. Fixed Start Screen issue with Signature Scanning GfxDevice on Unity 2020.3.15 x86 Mono.
+36. Updated [Tomlet](https://github.com/SamboyCoding/Tomlet) to v5.0.0.
+37. Implemented Fallback Game Information Parsing.
+38. Fixed issue with manually setting Unity version via Launch Option causing it to not attempt to read Game Name, Game Developer, or Game Version.
 
 ---
 

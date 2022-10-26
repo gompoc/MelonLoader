@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace MelonLoader
 {
@@ -8,7 +8,7 @@ namespace MelonLoader
         /// <summary>
         /// List of registered <typeparamref name="T"/>s.
         /// </summary>
-        new public static List<T> RegisteredMelons => _registeredMelons.AsReadOnly().ToList();
+        new public static ReadOnlyCollection<T> RegisteredMelons => _registeredMelons.AsReadOnly();
         new internal static List<T> _registeredMelons = new();
 
         /// <summary>
@@ -23,13 +23,15 @@ namespace MelonLoader
 
         public sealed override string MelonTypeName => TypeName;
 
-        protected internal override bool RegisterInternal()
+        protected private override bool RegisterInternal()
         {
+            if (!base.RegisterInternal())
+                return false;
             _registeredMelons.Add((T)this);
             return true;
         }
 
-        protected internal override void UnregisterInternal()
+        protected private override void UnregisterInternal()
         {
             _registeredMelons.Remove((T)this);
         }

@@ -60,7 +60,10 @@
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Include="..\Mono\SM_Component.cs" />
+		<Compile Include="..\Component.cs" Link="Component.cs" />
+		<Compile Include="..\SupportModule_To.cs" Link="SupportModule_To.cs" />
+		<Compile Include="..\SceneHandler.cs" Link="SceneHandler.cs" />
+		<Compile Include="..\UnityMappers.cs" Link="UnityMappers.cs" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\MelonLoader\MelonLoader.csproj">

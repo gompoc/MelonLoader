@@ -11,7 +11,7 @@ namespace MelonLoader
             TypeName = "Mod";
         }
 
-        protected internal override bool RegisterInternal()
+        protected private override bool RegisterInternal()
         {
             try
             {
@@ -24,11 +24,23 @@ namespace MelonLoader
                 return false;
             }
 
-            base.RegisterInternal();
+            if (!base.RegisterInternal())
+                return false;
+
+            if (MelonEvents.MelonHarmonyInit.Disposed)
+                HarmonyInit();
+            else
+                MelonEvents.MelonHarmonyInit.Subscribe(HarmonyInit, Priority, true);
+
             return true;
         }
+        private void HarmonyInit()
+        {
+            if (!MelonAssembly.HarmonyDontPatchAll)
+                HarmonyInstance.PatchAll(MelonAssembly.Assembly);
+        }
 
-        protected internal override void RegisterCallbacks()
+        protected private override void RegisterCallbacks()
         {
             base.RegisterCallbacks();
 
@@ -38,7 +50,6 @@ namespace MelonLoader
 
             MelonEvents.OnSceneWasLoaded.Subscribe((idx, name) => OnLevelWasLoaded(idx), Priority);
             MelonEvents.OnSceneWasInitialized.Subscribe((idx, name) => OnLevelWasInitialized(idx), Priority);
-            MelonEvents.BONEWORKS_OnLoadingScreen.Subscribe(BONEWORKS_OnLoadingScreen, Priority);
             MelonEvents.OnApplicationStart.Subscribe(OnApplicationStart, Priority);
         }
 
@@ -62,9 +73,6 @@ namespace MelonLoader
         #endregion
 
         #region Obsolete Members
-
-        [Obsolete("Subscribe to the 'MelonEvents.BONEWORKS_OnLoadingScreen' event instead.")]
-        public virtual void BONEWORKS_OnLoadingScreen() { }
         [Obsolete("Override OnSceneWasLoaded instead.")]
         public virtual void OnLevelWasLoaded(int level) { }
         [Obsolete("Override OnSceneWasInitialized instead.")]

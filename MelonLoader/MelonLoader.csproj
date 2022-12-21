@@ -29,7 +29,7 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6'">
 		<PackageReference Include="AsmResolver.DotNet" Version="5.0.0" />
 		<PackageReference Include="Microsoft.Diagnostics.Runtime" Version="2.2.343001" />
-		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
 		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 		<PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
 		<PackageReference Include="Il2CppInterop.Common" Version="1.4.3-ci.244" />

@@ -19,6 +19,7 @@ pub fn init(mono: Mono) -> Result<(), Box<dyn Error>> {
     mono.add_internal_call("MelonLoader.MonoInternals.ResolveInternals.AssemblyManager::InstallHooks", InstallHooks as usize)?;
     mono.add_internal_call("MelonLoader.MonoInternals.MonoLibrary::GetRootDomainPtr", GetRootDomainPtr as usize)?;
     mono.add_internal_call("MelonLoader.Support.Preload::GetManagedDirectory", GetManagedDirectory as usize)?;
+    mono.add_internal_call("MelonLoader.Utils.MelonEnvironment::Internal_GetExecutablePath", GetExecutablePath as usize)?;
 
     unsafe {
         MONO = Some(mono);
@@ -203,5 +204,16 @@ fn GetManagedDirectory() -> *mut MonoString {
 fn get_managed_directory() -> Result<*mut MonoString, Box<dyn Error>> {
     let path = files::managed_dir()?;
     let path = path.to_str().ok_or_else(|| "Failed to convert path to string")?;
+    Ok(MonoString::new(path)?)
+}
+
+fn GetExecutablePath() -> *mut MonoString {
+    get_executable_path().unwrap_or_else(|e| {
+        internal_failure!("Failed to get managed directory: {}", e.to_string());
+    })
+}
+
+fn get_executable_path() -> Result<*mut MonoString, Box<dyn Error>> {
+    let path = std::env::current_exe().to_str().ok_or_else(|| "Failed to convert path to string")?;
     Ok(MonoString::new(path)?)
 }

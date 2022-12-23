@@ -2,6 +2,7 @@
 
 #if !NET6_0
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using MelonLoader;
 #endif
 
@@ -26,9 +27,9 @@ namespace MelonLoader.Utils
         public static string GameExecutablePath => System.Environment.ProcessPath;
 #else
         public static string GameExecutablePath => Internal_GetExecutablePath();
-#endif
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static string Internal_GetExecutablePath();
+#endif
         public static string MelonBaseDirectory => Directory.GetParent(MelonLoaderDirectory)!.FullName;
         public static string DependenciesDirectory => Path.Combine(MelonLoaderDirectory, "Dependencies");
         public static string SupportModuleDirectory => Path.Combine(DependenciesDirectory, "SupportModules");

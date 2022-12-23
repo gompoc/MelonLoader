@@ -25,8 +25,10 @@ namespace MelonLoader.Utils
 #if NET6_0
         public static string GameExecutablePath => System.Environment.ProcessPath;
 #else
-        public static string GameExecutablePath => Process.GetCurrentProcess().MainModule!.FileName;
+        public static string GameExecutablePath => Internal_GetExecutablePath();
 #endif
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static string Internal_GetExecutablePath();
         public static string MelonBaseDirectory => Directory.GetParent(MelonLoaderDirectory)!.FullName;
         public static string DependenciesDirectory => Path.Combine(MelonLoaderDirectory, "Dependencies");
         public static string SupportModuleDirectory => Path.Combine(DependenciesDirectory, "SupportModules");

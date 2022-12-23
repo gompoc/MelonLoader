@@ -214,6 +214,7 @@ fn GetExecutablePath() -> *mut MonoString {
 }
 
 fn get_executable_path() -> Result<*mut MonoString, Box<dyn Error>> {
-    let path = std::env::current_exe()?.to_str().ok_or_else(|| "Failed to convert path to string")?;
+    let binding = std::env::current_exe()?;
+    let path = binding.to_str().ok_or_else(|| "Failed to convert path to string")?;
     Ok(MonoString::new(path)?)
 }

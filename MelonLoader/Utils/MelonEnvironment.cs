@@ -1,10 +1,11 @@
-﻿using System.IO;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 #if !NET6_0
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using MelonLoader;
 #endif
+
 
 namespace MelonLoader.Utils
 {

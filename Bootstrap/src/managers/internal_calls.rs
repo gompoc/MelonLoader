@@ -209,7 +209,7 @@ fn get_managed_directory() -> Result<*mut MonoString, Box<dyn Error>> {
 
 fn GetExecutablePath() -> *mut MonoString {
     get_executable_path().unwrap_or_else(|e| {
-        internal_failure!("Failed to get managed directory: {}", e.to_string());
+        internal_failure!("Failed to get executable path: {}", e.to_string());
     })
 }
 
